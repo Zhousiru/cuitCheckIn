@@ -30,9 +30,13 @@ func reqList(client *resty.Client) (string, error) {
 }
 
 func dumpList(listBody string) ([]*CheckIn, error) {
-	r, _ := regexp.Compile(`middle;">(.*?)</td>.*?<a href="(sjDb.*?)".*?>(.*?)<\/a>.*?middle;">(.*?) .*?<br>`)
+	// preprocess
+	s := strings.ReplaceAll(listBody, "\n", "")
+	s = strings.ReplaceAll(s, "\r", "")
 
-	regexResult := r.FindAllStringSubmatch(strings.ReplaceAll(listBody, "\n", ""), -1)
+	r := regexp.MustCompile(`(?i)middle;">(√|&nbsp;)</td><td align="left" style="vertical-align: middle;"><a href=(sjDb.*?)>(.*?)<\/a>.*?middle;">(.*?) .*?<br>`)
+
+	regexResult := r.FindAllStringSubmatch(s, -1)
 
 	var checkInSlice []*CheckIn
 
@@ -57,4 +61,13 @@ func dumpList(listBody string) ([]*CheckIn, error) {
 	}
 
 	return checkInSlice, nil
+}
+
+func GetCheckInList(client *resty.Client) ([]*CheckIn, error) {
+	s, err := reqList(client)
+	if err != nil {
+		return nil, err
+	}
+
+	return dumpList(s)
 }
