@@ -6,7 +6,7 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-var (
+const (
 	cuitLoginUrl = "http://login.cuit.edu.cn/Login/xLogin/Login.asp"
 	cuitJkdkUrl  = "http://jszx-jxpt.cuit.edu.cn/jxgl/xs/netks/sj.asp?jkdk=Y"
 )
