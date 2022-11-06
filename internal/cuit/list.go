@@ -1,7 +1,7 @@
 package cuit
 
 import (
-	"path"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -50,7 +50,12 @@ func dumpList(listBody string) ([]*CheckIn, error) {
 		checkIn := new(CheckIn)
 		checkIn.Title = el[3]
 		checkIn.Date = el[4]
-		checkIn.Url = path.Join(path.Dir(cuitListUrl), el[2])
+
+		listUrl, _ := url.Parse(cuitListUrl)
+		listUrl = listUrl.JoinPath("../", el[2])
+
+		checkIn.Url = listUrl.String()
+
 		if el[1] == "√" {
 			checkIn.IsChecked = true
 		} else {
