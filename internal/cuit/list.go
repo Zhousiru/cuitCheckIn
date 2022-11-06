@@ -34,7 +34,7 @@ func dumpList(listBody string) ([]*CheckIn, error) {
 	s := strings.ReplaceAll(listBody, "\n", "")
 	s = strings.ReplaceAll(s, "\r", "")
 
-	r := regexp.MustCompile(`(?i)middle;">(√|&nbsp;)</td><td align="left" style="vertical-align: middle;"><a href=(sjDb.*?)>(.*?)<\/a>.*?middle;">(.*?) .*?<br>`)
+	r := regexp.MustCompile(`(?i)middle;">(√|&nbsp;)</td><td align="left" style="vertical-align: middle;"><a href=(sjDb.*?) .*?>(.*?)<\/a>.*?middle;">(.*?) .*?<br>`)
 
 	regexResult := r.FindAllStringSubmatch(s, -1)
 
@@ -52,9 +52,9 @@ func dumpList(listBody string) ([]*CheckIn, error) {
 		checkIn.Date = el[4]
 
 		listUrl, _ := url.Parse(cuitListUrl)
-		listUrl = listUrl.JoinPath("../", el[2])
+		listUrl = listUrl.JoinPath("../")
 
-		checkIn.Url = listUrl.String()
+		checkIn.Url = listUrl.String() + el[2]
 
 		if el[1] == "√" {
 			checkIn.IsChecked = true
