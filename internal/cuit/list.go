@@ -3,7 +3,7 @@ package cuit
 import (
 	"net/url"
 	"regexp"
-	"strings"
+	"time"
 
 	"github.com/Zhousiru/cuitCheckIn/internal/util"
 	"github.com/go-resty/resty/v2"
@@ -15,9 +15,13 @@ const (
 
 type CheckIn struct {
 	Title     string
-	Date      string
+	Date      time.Time
 	IsChecked bool
 	Url       string
+}
+
+func (c *CheckIn) FormatDate() string {
+	return c.Date.Format("2006-01-02")
 }
 
 func reqList(client *resty.Client) (string, error) {
@@ -31,8 +35,7 @@ func reqList(client *resty.Client) (string, error) {
 
 func dumpList(listBody string) ([]*CheckIn, error) {
 	// preprocess
-	s := strings.ReplaceAll(listBody, "\n", "")
-	s = strings.ReplaceAll(s, "\r", "")
+	s := util.TrimNewline(listBody)
 
 	r := regexp.MustCompile(`(?i)middle;">(√|&nbsp;)</td><td align="left" style="vertical-align: middle;"><a href=(sjDb.*?) .*?>(.*?)<\/a>.*?middle;">(.*?) .*?<br>`)
 
@@ -49,7 +52,7 @@ func dumpList(listBody string) ([]*CheckIn, error) {
 
 		checkIn := new(CheckIn)
 		checkIn.Title = el[3]
-		checkIn.Date = el[4]
+		checkIn.Date, _ = time.Parse("2006-01-02", el[4])
 
 		listUrl, _ := url.Parse(cuitListUrl)
 		listUrl = listUrl.JoinPath("../")

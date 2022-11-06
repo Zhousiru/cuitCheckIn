@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"io"
+	"strings"
 
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
@@ -17,4 +18,11 @@ func DecodeGbk(gbkData []byte) (string, error) {
 
 	}
 	return string(b), nil
+}
+
+func TrimNewline(str string) string {
+	ret := strings.ReplaceAll(str, "\n", "")
+	ret = strings.ReplaceAll(ret, "\r", "")
+
+	return ret
 }
