@@ -1,6 +1,7 @@
 package cuit
 
 import (
+	"errors"
 	"regexp"
 
 	"github.com/go-resty/resty/v2"
@@ -8,8 +9,9 @@ import (
 
 const (
 	cuitLoginUrl = "http://login.cuit.edu.cn/Login/xLogin/Login.asp"
-	cuitJkdkUrl  = "http://jszx-jxpt.cuit.edu.cn/jxgl/xs/netks/sj.asp?jkdk=Y"
 )
+
+var ErrInvalidLoginCredential = errors.New("invalid login credential")
 
 func getCodeKey(client *resty.Client) (string, error) {
 	resp, err := client.R().Get(cuitLoginUrl)
@@ -35,7 +37,7 @@ func Login(id string, passwd string) (*resty.Client, error) {
 	}
 
 	// req #1: post login form
-	_, err = client.R().
+	resp, err := client.R().
 		SetFormData(map[string]string{
 			"WinW":        genWinW(),
 			"winH":        genWinH(),
@@ -52,15 +54,23 @@ func Login(id string, passwd string) (*resty.Client, error) {
 		return nil, err
 	}
 
+	r, _ := regexp.Compile(`(content="0;URL=)(.*?)(">)`)
+
+	// check login response
+	sub := r.FindStringSubmatch(string(resp.Body()))
+	if len(sub) == 0 {
+		return nil, ErrInvalidLoginCredential
+	}
+
+	jkdkUrl := sub[2]
+
 	// req #2: goto jkdk
-	resp, err := client.R().Get(cuitJkdkUrl)
+	resp, err = client.R().Get(jkdkUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	r, _ := regexp.Compile(`(content="0;URL=)(.*?)(">)`)
-	respStr := string(resp.Body())
-	qqLoginUrl := r.FindStringSubmatch(respStr)[2]
+	qqLoginUrl := r.FindStringSubmatch(string(resp.Body()))[2]
 
 	// req #3: goto qqLogin
 	_, err = client.R().Get(qqLoginUrl)
