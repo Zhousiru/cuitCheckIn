@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"io"
+	"net/url"
 	"strings"
 
 	"golang.org/x/text/encoding/simplifiedchinese"
@@ -18,6 +19,20 @@ func DecodeGbk(gbkData []byte) (string, error) {
 
 	}
 	return string(b), nil
+}
+
+func EncodeGbkUrl(s string) (string, error) {
+	reader := transform.NewReader(bytes.NewReader([]byte(s)), simplifiedchinese.GBK.NewEncoder())
+
+	b, err := io.ReadAll(reader)
+	if err != nil {
+		return "", err
+
+	}
+
+	encoded := url.QueryEscape(string(b))
+
+	return encoded, nil
 }
 
 func TrimNewline(str string) string {
