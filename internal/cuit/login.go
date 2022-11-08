@@ -28,6 +28,10 @@ func getCodeKey(client *resty.Client) (string, error) {
 
 func Login(id string, passwd string) (*resty.Client, error) {
 	client := resty.New()
+
+	// DEBUG
+	// client.SetProxy("http://127.0.0.1:8888")
+
 	client.SetHeader("Referer", cuitLoginUrl)
 
 	// req #0: get codeKey
@@ -43,7 +47,7 @@ func Login(id string, passwd string) (*resty.Client, error) {
 			"winH":        genWinH(),
 			"txtId":       id,
 			"txtMM":       passwd,
-			"verifycode":  "不区分大小写", // wtf
+			"verifycode":  "", // not needed
 			"codeKey":     codeKey,
 			"Login":       "Check",
 			"IbtnEnter.x": "0",
