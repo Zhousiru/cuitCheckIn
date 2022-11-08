@@ -31,8 +31,7 @@ func Login(id string, passwd string) (*resty.Client, error) {
 
 	// DEBUG
 	// client.SetProxy("http://127.0.0.1:8888")
-
-	client.SetHeader("Referer", cuitLoginUrl)
+	// client.SetDebug(true)
 
 	// req #0: get codeKey
 	codeKey, err := getCodeKey(client)
@@ -41,7 +40,7 @@ func Login(id string, passwd string) (*resty.Client, error) {
 	}
 
 	// req #1: post login form
-	resp, err := client.R().
+	resp, err := client.R().SetHeader("Referer", cuitLoginUrl).
 		SetFormData(map[string]string{
 			"WinW":        genWinW(),
 			"winH":        genWinH(),
