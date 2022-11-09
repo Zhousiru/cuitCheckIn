@@ -102,13 +102,18 @@ func trimTime(t time.Time) time.Time {
 }
 
 func PostCheckInReq(client *resty.Client, checkIn *CheckIn, req *CheckInReq) error {
-	flag := new(passportRangeFlag)
-	flag.From(req.PassportReq, checkIn)
+	var r *strings.Replacer
+	if req.PassportReq == nil {
+		r = strings.NewReplacer("{{dest}}", "", "{{reason}}", "", "{{startDayFlag}}", "", "{{startTimeFlag}}", "", "{{endDayFlag}}", "", "{{endTimeFlag}}", "")
+	} else {
+		flag := new(passportRangeFlag)
+		flag.From(req.PassportReq, checkIn)
 
-	dest, _ := util.EncodeGbkUrl(req.PassportReq.Dest)
-	reason, _ := util.EncodeGbkUrl(req.PassportReq.Reason)
+		dest, _ := util.EncodeGbkUrl(req.PassportReq.Dest)
+		reason, _ := util.EncodeGbkUrl(req.PassportReq.Reason)
 
-	r := strings.NewReplacer("{{dest}}", dest, "{{reason}}", reason, "{{startDayFlag}}", flag.StartDayFlag, "{{startTimeFlag}}", flag.StartTimeFlag, "{{endDayFlag}}", flag.EndDayFlag, "{{endTimeFlag}}", flag.EndTimeFlag)
+		r = strings.NewReplacer("{{dest}}", dest, "{{reason}}", reason, "{{startDayFlag}}", flag.StartDayFlag, "{{startTimeFlag}}", flag.StartTimeFlag, "{{endDayFlag}}", flag.EndDayFlag, "{{endTimeFlag}}", flag.EndTimeFlag)
+	}
 
 	checkInUrl, _ := url.Parse(checkIn.Url)
 	checkInQuery := checkInUrl.Query()
@@ -117,14 +122,12 @@ func PostCheckInReq(client *resty.Client, checkIn *CheckIn, req *CheckInReq) err
 	formUrl.Add("Id", checkInQuery.Get("Id"))
 	formUrl.Add("ObjId", checkInQuery.Get("ObjId"))
 
-	resp, err := client.R().SetHeader("Referer", checkIn.Url).
+	_, err := client.R().SetHeader("Referer", checkIn.Url).
 		SetFormDataFromValues(formUrl).
 		Post(cuitCheckInPostUrl)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(util.DecodeGbk(resp.Body()))
 
 	return nil
 }
